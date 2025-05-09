@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Canvas Editor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      background-color: #7fb8f1;
+    }
+
+    header {
+      background-color: #120101;
+      color: rgb(255, 254, 255);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 0 auto 30px auto;
+    }
+
+    canvas {
+      border: 2px solid #26c5dd;
+      display: block;
+      margin: 0 auto;
+      background-color: white;
+    }
+
+    h3 {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Student Profile</h2>
+    <p><strong>Complete Name:</strong> Jomel A. Pahuwayan</p>
+    <p><strong>Sex:</strong> Male</p>
+    <p><strong>Address:</strong> Lamon Goa, Camarines Sur</p>
+    <p><strong>Course, Year, and Section:</strong> BSIT-2B</p>
+    <p><strong>Name of School:</strong> Partido State University</p>
+    <p><strong>Semester and Academic Year:</strong> 2nd Sem AY 2024–2025</p>
+    <p><strong>Course Code and Title:</strong> PF2 - Event Driven Programming</p>
+    <p><strong>Name of Subject Instructor:</strong> Prof. Arjay Abio</p>
+  </header>
+
+  <h3>Interactive Canvas: Create, Move, Resize, Delete Circles</h3>
+  <canvas id="myCanvas" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    let circles = [];
+    let selectedCircle = null;
+    let isDragging = false;
+    let offsetX = 0, offsetY = 0;
+    let toggleSize = true; // true = small, false = big
+
+    canvas.addEventListener('click', function (e) {
+      const { x, y } = getMousePos(e);
+      const clicked = circles.find(c => isInside(x, y, c));
+
+      if (clicked) {
+        selectedCircle = clicked;
+      } else {
+        let radius = toggleSize ? 20 : 40;
+        let color = circles.length === 0 ? 'red' : 'blue'; // first circle red, rest blue
+        circles.push({ x, y, radius, color });
+        toggleSize = !toggleSize;
+        selectedCircle = null;
+      }
+      drawAll();
+    });
+
+    canvas.addEventListener('mousedown', function (e) {
+      const { x, y } = getMousePos(e);
+      if (selectedCircle && isInside(x, y, selectedCircle)) {
+        isDragging = true;
+        offsetX = x - selectedCircle.x;
+        offsetY = y - selectedCircle.y;
+      }
+    });
+
+    canvas.addEventListener('mousemove', function (e) {
+      if (isDragging && selectedCircle) {
+        const { x, y } = getMousePos(e);
+        selectedCircle.x = x - offsetX;
+        selectedCircle.y = y - offsetY;
+        drawAll();
+      }
+    });
+
+    canvas.addEventListener('mouseup', function () {
+      isDragging = false;
+    });
+
+    canvas.addEventListener('wheel', function (e) {
+      if (selectedCircle) {
+        e.preventDefault();
+        selectedCircle.radius += e.deltaY < 0 ? 2 : -2;
+        if (selectedCircle.radius < 5) selectedCircle.radius = 5;
+        drawAll();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Delete' && selectedCircle) {
+        circles = circles.filter(c => c !== selectedCircle);
+        selectedCircle = null;
+        drawAll();
+      }
+    });
+
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+
+    function isInside(x, y, circle) {
+      const dx = x - circle.x;
+      const dy = y - circle.y;
+      return Math.sqrt(dx * dx + dy * dy) <= circle.radius;
+    }
+
+    function drawAll() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      circles.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+        ctx.fillStyle = c.color;
+        ctx.fill();
+        ctx.stroke();
+      });
+    }
+  </script>
+</body>
+</html>
