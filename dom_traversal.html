@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive DOM Traversal</title>
+  <style>
+    :root {
+      --primary-color: #0de01e;
+      --hover-color: #d62dd9;
+      --section-bg: #956d6d;
+      --border-color: #6acb0f;
+      --text-color: black;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: var(--section-bg);
+      color: var(--text-color);
+    }
+
+    header {
+      background-color: #f0f0f0;
+      border-left: 10px solid var(--primary-color);
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+
+    header h2 {
+      color: var(--primary-color);
+      margin-top: 0;
+    }
+
+    header p {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+
+    .node {
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      color: #000;
+      outline: 0.5px solid #222;
+    }
+
+    .grandparent {
+      background-color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    .parent {
+      background-color: var(--hover-color);
+      margin-left: 20px;
+    }
+
+    .child {
+      background-color: #5ED1C9;
+      margin-left: 40px;
+    }
+
+    .highlight {
+      outline: 3px solid #222;
+      box-shadow: 0 0 10px #222;
+    }
+
+    .controls {
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: var(--hover-color);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>Student Profile</h2>
+  <p><strong>Complete Name:</strong> Jomel A. Pahuwayan</p>
+  <p><strong>Sex:</strong> Male</p>
+  <p><strong>Address:</strong> Lamon Goa, Camarines Sur</p>
+  <p><strong>Course, Year, and Section:</strong> BSIT 2B</p>
+  <p><strong>Name of School:</strong> Partido State University</p>
+  <p><strong>Semester and Academic Year:</strong> 2nd Sem, AY 2024–2025</p>
+  <p><strong>Subject Code and Title:</strong> PF2 - Event-Driven Programming</p>
+  <p><strong>Name of Subject Instructor:</strong> Sir Arjay Abio</p>
+</header>
+
+<h2>DOM Traversal Interactive</h2>
+<div id="grandparent" class="node grandparent">Grandparent
+  <div class="node parent">Parent 1
+    <div class="node child">Child 1</div>
+    <div class="node child">Child 2</div>
+  </div>
+  <div class="node parent">Parent 2
+    <div class="node child">Child 3</div>
+    <div class="node child">Child 4</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="traverseUp()">Traverse Up</button>
+  <button onclick="traverseDown()">Traverse Down</button>
+  <button onclick="traversePrev()">Previous Sibling</button>
+  <button onclick="traverseNext()">Next Sibling</button>
+  <button onclick="addChild()">Add Child</button>
+  <button onclick="deleteNode()">Delete Current</button>
+</div>
+
+<script>
+  let selectedNode = null;
+  let parentCount = 2;
+  let childCount = 4;
+
+  function bindNodeClickEvents() {
+    document.querySelectorAll('.node').forEach(node => {
+      node.onclick = function (e) {
+        e.stopPropagation();
+        if (selectedNode) selectedNode.classList.remove('highlight');
+        selectedNode = this;
+        selectedNode.classList.add('highlight');
+      };
+    });
+  }
+
+  function selectNewNode(newNode) {
+    if (selectedNode) selectedNode.classList.remove('highlight');
+    selectedNode = newNode;
+    selectedNode.classList.add('highlight');
+  }
+
+  function traverseUp() {
+    if (!selectedNode || !selectedNode.parentElement.classList.contains('node')) return;
+    selectNewNode(selectedNode.parentElement);
+  }
+
+  function traverseDown() {
+    if (!selectedNode) return;
+    const child = Array.from(selectedNode.children).find(el => el.classList.contains('node'));
+    if (child) selectNewNode(child);
+  }
+
+  function traverseNext() {
+    if (!selectedNode) return;
+    let next = selectedNode.nextElementSibling;
+    while (next && !next.classList.contains('node')) {
+      next = next.nextElementSibling;
+    }
+    if (next) selectNewNode(next);
+  }
+
+  function traversePrev() {
+    if (!selectedNode) return;
+    let prev = selectedNode.previousElementSibling;
+    while (prev && !prev.classList.contains('node')) {
+      prev = prev.previousElementSibling;
+    }
+    if (prev) selectNewNode(prev);
+  }
+
+  function addChild() {
+    if (!selectedNode) return;
+
+    if (selectedNode.classList.contains('child')) {
+      alert("Cannot add a child to a child node.");
+      return;
+    }
+
+    if (selectedNode.classList.contains('grandparent')) {
+      parentCount++;
+      const newParent = document.createElement('div');
+      newParent.className = 'node parent';
+      newParent.innerHTML = `Parent ${parentCount}`;
+
+      childCount++;
+      const child1 = document.createElement('div');
+      child1.className = 'node child';
+      child1.innerHTML = `Child ${childCount}`;
+
+      childCount++;
+      const child2 = document.createElement('div');
+      child2.className = 'node child';
+      child2.innerHTML = `Child ${childCount}`;
+
+      newParent.appendChild(child1);
+      newParent.appendChild(child2);
+      selectedNode.appendChild(newParent);
+
+    } else if (selectedNode.classList.contains('parent')) {
+      childCount++;
+      const newChild = document.createElement('div');
+      newChild.className = 'node child';
+      newChild.innerHTML = `Child ${childCount}`;
+      selectedNode.appendChild(newChild);
+    }
+
+    bindNodeClickEvents();
+  }
+
+  function deleteNode() {
+    if (!selectedNode) return;
+    if (selectedNode.id === 'grandparent') {
+      alert("Cannot delete the grandparent node.");
+      return;
+    }
+
+    const parent = selectedNode.parentElement;
+    parent.removeChild(selectedNode);
+    selectedNode = null;
+  }
+
+  bindNodeClickEvents();
+</script>
+
+</body>
+</html>
